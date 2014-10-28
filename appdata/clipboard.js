@@ -1,0 +1,20 @@
+var exec = require('child_process').exec;
+function execute(command, callback){
+	if(typeof callback != "undefined"){
+		exec(command, function(error, stdout, stderr){ callback(stdout); });
+	}else{
+		exec(command, function(error, stdout, stderr){});
+	}
+};
+module.exports = {
+	get: function (callback) {//Obtener clipboard
+		execute("xclip -o -selection clipboard",function(stdout){
+			callback(stdout);
+		})
+	},
+	set: function (w,callback) {//Asignar clipboard
+		execute("echo '"+w+"' | xclip -i -selection clipboard",function(stdout){
+			callback(stdout);
+		})
+	}
+}
