@@ -1,6 +1,4 @@
 //Funciones nativas e implementadas de manejo de archivos
-var trash = require('xdg-trash');
-var emptyTrash = require('xdg-empty-trash');
 var fs=require('fs-extra');
 var fsnat=require('fs');
 
@@ -66,12 +64,11 @@ module.exports = {
 			filenameu=filenameu.substr(0,filenameu.length-1)
 			var msg = ['[Trash Info]','Path=' + filenameu,'DeletionDate=' + new Date().toISOString()].join('\n');
 			fs.outputFileSync(userdir+".local/share/Trash/info/"+filenamex+".trashinfo",msg);
-			fs.move(files[i], userdir+".local/share/Trash/files/"+filenamex, function(err){if (err) return console.error(err);});
-			console.log("index:"+i+" total:"+files.length)
-			if(i == files.length){
-				fs.move(files[i], userdir+".local/share/Trash/files/"+filenamex, callback);
+			console.log("index:"+i+" total:"+files.length);
+			if(i < files.length-1){
+				fs.move(files[i], userdir+".local/share/Trash/files/"+filenamex, function(){});
 			}else{
-				fs.move(files[i], userdir+".local/share/Trash/files/"+filenamex, function(err){if (err) return console.error(err);});
+				fs.move(files[i], userdir+".local/share/Trash/files/"+filenamex, callback);
 			}
 		};
 	},

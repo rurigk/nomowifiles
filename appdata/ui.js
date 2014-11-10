@@ -34,11 +34,6 @@ var sizeOfImage = require('image-size');
 var clipboard = require('./clipboard.js');
 var filemanager = require('./filemanager.js');
 
-//get clipboard
-//var text = clipboard.get('text');
-//set clipboard
-//clipboard.set('I love node-webkit :)', 'text');
-
 var app=[];
 app.userdir=(process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE)+"/";
 app.tabscount=0;
@@ -49,6 +44,16 @@ app.bookmarks=[];
 app.lbookmarks="";
 
 app.view=(typeof localStorage["view"] == "undefined") ? "list":localStorage["view"];
+
+app.main_w=gui.Window.get(0);
+app.maximized=false;
+
+app.main_w.on('maximize',function(){
+	app.maximized=true;
+})
+app.main_w.on('unmaximize',function(){
+	app.maximized=false;
+})
 
 //console.log(gui.App.argv);
 
@@ -69,6 +74,7 @@ menu.file.append(new gui.MenuItem({ label: 'Renombrar' }));
 menu.file.append(new gui.MenuItem({ type: 'separator' }));
 menu.file.append(new gui.MenuItem({ label: 'Mover a la papelera' }));
 menu.file.append(new gui.MenuItem({ type: 'separator' }));
+menu.file.append(new gui.MenuItem({ label: 'Crear un enlace' }));
 menu.file.append(new gui.MenuItem({ label: 'Propiedades' }));
 
 menu.file.items[0].click=function(){
@@ -129,6 +135,29 @@ menu.file.items[8].click=function(){
 		loadDir();
 	});
 }
+menu.file.items[10].click=function(){
+	tabdom=getTabDom();
+	tabfiles_selected=tabdom.querySelectorAll('.file-e[sel="1"]')
+	for (var i = 0; i < tabfiles_selected.length; i++) {
+		slash="";
+		dir_c=app.tabs[getIndex(app.tabid)][1];
+		name=tabfiles_selected[i].querySelector('.f-name').innerHTML;
+		if(tabfiles_selected[i].getAttribute('xtype') == "dir"){
+			slash="/";
+		}
+		origen=dir_c+name+slash;
+		destino=dir_c+"Link to "+name;
+		console.log(origen+"&&&"+destino);
+		createLink(origen,destino);
+	};
+}
+
+function createLink(origen,destino){
+	execute("ln -s '"+origen+"' '"+destino+"'",function(stdout){
+		console.log("link creado")
+		console.log(stdout);
+	})
+}
 
 
 window.addEventListener("load",function(){
@@ -145,15 +174,20 @@ window.addEventListener("load",function(){
 	}
 	getID('files').setAttribute('view',app.view);
 	addTab(app.userdir);
-	console.log("llamada de inicio");
+	//console.log("llamada de inicio");
 	autoHeight(getTabDom());
 	gen_thumbnails();
 	//·Mouse
 	window.addEventListener('contextmenu', function(e) {
-		if(isclosest(e,'.file-e')){
+		if((is(e,'.f-icon') || is(e,'.f-name')) || (is(e,'.file-e') && app.view == "list")){
 			file_e=closest(e,'.file-e')
+			//console.log(file_e)
 			if(file_e.getAttribute('sel') != "1"){
-				file_e.click();
+				if(app.view == "list"){
+					file_e.click();
+				}else{
+					file_e.getElementsByClassName('f-name')[0].click();
+				}
 			}
 			menu.file.popup(e.x, e.y);
 		}
@@ -163,7 +197,18 @@ window.addEventListener("load",function(){
 		if(is(e,'.closewindow')){
 			window.close();
 		}
-		if(is(e,'.f-icon') || is(e,'.f-name')){
+		if(is(e,'.maxwindow')){
+			if(!app.maximized){
+				app.main_w.maximize();
+			}else{
+				app.maximized=false;
+				app.main_w.unmaximize();
+			}
+		}
+		if(is(e,'.minwindow')){
+			app.main_w.minimize();
+		}
+		if((is(e,'.f-icon') || is(e,'.f-name')) || (is(e,'.file-e') && app.view == "list")){
 			tabs=getClass('tabcont');
 			tabsxc=null;
 			for (var i = 0; i < tabs.length; i++){
@@ -279,10 +324,13 @@ window.addEventListener("load",function(){
 				getClass('view-btn')[1].setAttribute('sel','0');
 				e.target.setAttribute('sel','1');
 				localStorage["view"]=e.target.getAttribute('view');
+				app.view=e.target.getAttribute('view');
 				getID('files').setAttribute('view',e.target.getAttribute('view'));
-				getMimeIcons();
-				gen_thumbnails();
-				autoHeight(getTabDom());
+				if (app.tabs.length > 0){
+					getMimeIcons();
+					gen_thumbnails();
+					autoHeight(getTabDom());	
+				};
 			}
 		}
 	});
@@ -325,22 +373,16 @@ window.addEventListener("load",function(){
 		}
 	});
 	//·Keyboard
-	window.addEventListener('keydown', function(e){
-		if(e.keyIdentifier === 'F5'){window.location.reload();}
-		if(e.keyCode == 16){keyh.shift=true;}
-		if(e.keyCode == 17){keyh.ctrl=true;}
-		if(e.keyCode == 18){keyh.altk=true;}
-		if(e.keyCode == 72){if(keyh.ctrl){
-			app.hiddenfiles=(app.hiddenfiles) ? false:true;
-			for (var i = 0; i < app.tabs.length; i++) {
-				loadDir(i);
-			};
-		}}
-		if(e.keyCode == 38){
-			event.preventDefault();
-			if(app.tabs[getIndex(app.tabid)][2] != null){
 
-				el=app.tabs[getIndex(app.tabid)][2].previousElementSibling;
+	function navLeft(n){
+		if(app.tabs[getIndex(app.tabid)][2] != null){
+			el=app.tabs[getIndex(app.tabid)][2];
+				for (var i = 0; i < n; i++) {
+					if(null == el.previousElementSibling){
+						break;
+					}
+					el=el.previousElementSibling;
+				};
 				if(el!=null){
 					if(!keyh.ctrl){
 						ent=getClass('file-e');
@@ -359,22 +401,18 @@ window.addEventListener("load",function(){
 				}
 			}
 			else{
-				tabs=getClass('tabcont');
-				tabsxc=null;
-				for (var i = 0; i < tabs.length; i++){if(tabs[i].getAttribute('tabid') == app.tabs[getIndex(app.tabid)][0]){tabsxc=tabs[i];}};
-				elms=tabsxc.getElementsByClassName('file-e');
-				elms[elms.length-1].setAttribute('sel','1');
-				app.tabs[getIndex(app.tabid)][2]=elms[elms.length-1];
-				el=app.tabs[getIndex(app.tabid)][2];
-				if(el != null){
-					getID('files').scrollTop=el.offsetTop-(parseInt(getComputedStyle(getID('files'),null).height)-parseInt(getComputedStyle(el,null).height)-20);
-				}
+				selLast();
 			}
-		}//arriba
-		if(e.keyCode == 40){
-			event.preventDefault();
-			if(app.tabs[getIndex(app.tabid)][2] != null){
-				el=app.tabs[getIndex(app.tabid)][2].nextElementSibling;
+	}
+	function navRight(n){
+		if(app.tabs[getIndex(app.tabid)][2] != null){
+			el=app.tabs[getIndex(app.tabid)][2];
+				for (var i = 0; i < n; i++) {
+					if(null == el.nextElementSibling){
+						break;
+					}
+					el=el.nextElementSibling;
+				};
 				if(el!=null){
 					if(!keyh.ctrl){
 						ent=getClass('file-e');
@@ -391,13 +429,69 @@ window.addEventListener("load",function(){
 					el.setAttribute('sel','1');
 					app.tabs[getIndex(app.tabid)][2]=el;
 				}
-			}else{
-				tabs=getClass('tabcont');
-				tabsxc=null;
-				for (var i = 0; i < tabs.length; i++){if(tabs[i].getAttribute('tabid') == app.tabs[getIndex(app.tabid)][0]){tabsxc=tabs[i];}};
-				elms=tabsxc.getElementsByClassName('file-e');
-				elms[0].setAttribute('sel','1');
-				app.tabs[getIndex(app.tabid)][2]=elms[0];
+		}else{
+			selFirst();
+		}
+	}
+	function selFirst(){
+		tabs=getClass('tabcont');
+		tabsxc=null;
+		for (var i = 0; i < tabs.length; i++){if(tabs[i].getAttribute('tabid') == app.tabs[getIndex(app.tabid)][0]){tabsxc=tabs[i];}};
+		elms=tabsxc.getElementsByClassName('file-e');
+		elms[0].setAttribute('sel','1');
+		app.tabs[getIndex(app.tabid)][2]=elms[0];
+	}
+	function selLast(){
+		tabs=getClass('tabcont');
+		tabsxc=null;
+		for (var i = 0; i < tabs.length; i++){if(tabs[i].getAttribute('tabid') == app.tabs[getIndex(app.tabid)][0]){tabsxc=tabs[i];}};
+		elms=tabsxc.getElementsByClassName('file-e');
+		elms[elms.length-1].setAttribute('sel','1');
+		app.tabs[getIndex(app.tabid)][2]=elms[elms.length-1];
+		el=app.tabs[getIndex(app.tabid)][2];
+		if(el != null){
+			getID('files').scrollTop=el.offsetTop-(parseInt(getComputedStyle(getID('files'),null).height)-parseInt(getComputedStyle(el,null).height)-20);
+		}
+	}
+
+	window.addEventListener('keydown', function(e){
+		if(e.keyIdentifier === 'F5'){window.location.reload();}
+		if(e.keyCode == 16){keyh.shift=true;}
+		if(e.keyCode == 17){keyh.ctrl=true;}
+		if(e.keyCode == 18){keyh.altk=true;}
+		if(e.keyCode == 72){if(keyh.ctrl){
+			app.hiddenfiles=(app.hiddenfiles) ? false:true;
+			for (var i = 0; i < app.tabs.length; i++) {
+				loadDir(i);
+			};
+		}}
+		if(e.keyCode == 37 && e.target.id != "navinput" && app.tabs.length > 0){
+			event.preventDefault();
+			if(app.view == "mosaic"){navLeft(1);}
+		}//izquierda
+		if(e.keyCode == 39 && e.target.id != "navinput" && app.tabs.length > 0){
+			event.preventDefault();
+			if(app.view == "mosaic"){navRight(1);}
+		}//derecha
+		if(e.keyCode == 38 && e.target.id != "navinput" && app.tabs.length > 0){
+			event.preventDefault();
+			tabwidth=parseInt(getComputedStyle(getTabDom(), null).width);
+			if(app.view == "list"){navLeft(1);}
+			if(app.view == "mosaic"){
+				tabwidth=parseInt(getComputedStyle(getTabDom(), null).width);
+				xtabs=1;
+				for (var i = 0; i < 30; i++) {if(i*138 < tabwidth){xtabs=i;}else{break;}};
+				navLeft(xtabs);
+			}
+		}//arriba
+		if(e.keyCode == 40 && e.target.id != "navinput" && app.tabs.length > 0){
+			event.preventDefault();
+			if(app.view == "list"){navRight(1);}
+			if(app.view == "mosaic"){
+				tabwidth=parseInt(getComputedStyle(getTabDom(), null).width);
+				xtabs=1;
+				for (var i = 0; i < 30; i++) {if(i*138 < tabwidth){xtabs=i;}else{break;}};
+				navRight(xtabs);
 			}
 		}//abajo
 		if(e.keyCode == 13){
@@ -448,7 +542,8 @@ window.addEventListener("load",function(){
 					}
 				}
 			}
-			filemanager.trash(pathstotrash,function(err){
+			filemanager.trash(pathstotrash,function(){
+				app.tabs[getIndex(app.tabid)][2]=null;
 				loadDir();
 			});
 		}
@@ -462,10 +557,11 @@ window.addEventListener("load",function(){
 
 
 function loadDir(n,tabdom){
-	console.log("llamada loadDir");
+	//console.log("llamada loadDir");
 	tabtar= tabdom || getTabDom();
 	gindex = (typeof n == "undefined")? getIndex(app.tabid):n;
 	files=fs.readdirSync(app.tabs[gindex][1]);
+	//console.log(files)
 		files.sort();
 		tabtar.innerHTML="";
 		//Arrays que contienen las carpetas y los archivos separados
@@ -761,7 +857,7 @@ function gen_thumbnails(n,domx){
 		if(!fs.existsSync(thumbdir+"/")){fs.mkdirSync(thumbdir+"/", 0766);}
 		//recreate folder tree
 		genFolders(thumbdir,dir);
-		console.log("llamada del gen_thumbnails");
+		//console.log("llamada del gen_thumbnails");
 		w=domx || getTabDom();
 		files=w.getElementsByClassName('file-e');
 		for (var i = 0; i < files.length; i++) {
@@ -796,7 +892,7 @@ function gen_thumbnails(n,domx){
 			}
 		};
 	}else{
-		console.log("llamada de gen_thumbnails");
+		//console.log("llamada de gen_thumbnails");
 		w=getTabDom();
 		files=w.getElementsByClassName('file-e');
 		for (var i = 0; i < files.length; i++) {
@@ -829,7 +925,7 @@ function genFolders(base,dir){
 }
 
 function getMimeIcons(){
-	console.log("llamada del getMimeIcons");
+	//console.log("llamada del getMimeIcons");
 	if(getID('files').getAttribute('view') == "mosaic"){
 		iconsize=64;
 	}else if(getID('files').getAttribute('view') == "list"){
