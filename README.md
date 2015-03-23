@@ -1,7 +1,7 @@
 #Nomowi Files
 ###Corriendo el codigo
-1. Descargar nw.js (node-webkit)
-[node-webkit](http://nwjs.io/ "nw.js")
+1. Descargar
+[nw.js](http://nwjs.io/ "nw.js")(antes node-webkit)
 y descomprimir en un directorio
 
 2. Descargar el zip de Nomowi Files y extraerlo en el mismo directorio que node-webkit
