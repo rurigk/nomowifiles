@@ -1,0 +1,45 @@
+<html>
+<head>
+	<meta charset="utf-8"> 
+	<title>Nomowi Files</title>
+	<link rel="stylesheet" type="text/css" href="ui.css">
+	<script type="text/javascript" src='ui.js'></script>
+</head>
+<body class='bz'>
+	<div class='controls nosel'>
+		<div class='window-title'>Nomowi Files</div>
+		<div class='r window-buttons'>
+			<div class='l window-button bz minwindow'>&#xf068;</div>
+			<div class='l window-button bz maxwindow'>&#xf067;</div>
+			<div class='l window-button bz closewindow'>&#xf00d;</div>
+		</div>
+	</div>
+	<div id='window'>
+		<div class='navbar bz'>
+			<div class='l nav-button bz nosel m-right' id='prevdir' unabled='1'>&#xf053;</div>
+			<div class='l nav-button bz nosel m-right' id='nextdir' unabled='1'>&#xf054;</div>
+			<div class='l nav-button bz nosel view-btn' view='list' sel='1'>&#xf0c9;</div>
+			<div class='l nav-button bz nosel view-btn' view='mosaic' sel='0'>&#xf009;</div>
+			<div class='navinput-c bz l' id='navinput-c' editmode='0'>
+				<input type='text' id='navinput' class='bz'>
+				<div class='bz l' id='navinput-b'>
+
+				</div>
+			</div>
+			<div class='r nav-button bz nosel'>&#xf013;</div>
+		</div>
+		<div class='sidebar nosel'>
+			<div class='gk-dropdown nosel bz' opened="1">Personal</div>
+			<div class='gk-dropdown-container' opened="1" id='bookmarks'>
+			</div>
+		</div>
+		<div class='tabs bz nosel'>
+			<div class='addtab l bz'>&#xf067;</div>
+			<div id='tabs'>
+			</div>
+		</div>
+		<div id='files' class='nosel' view='list'>
+		</div>
+	</div>
+</body>
+</html>
