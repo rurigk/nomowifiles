@@ -283,16 +283,33 @@ body{
 	white-space:nowrap;
 	overflow: hidden;
 	font-size: 18px;
-	float: left;
 	max-width: calc(100% - 20px);
+	cursor: pointer;
 }
 .f-icon{
 	float: left;
 	overflow: hidden;
 	background-repeat: no-repeat;
 	background-position: center;
+	position: relative;
+	cursor: pointer;
 }
-.tabcont{overflow: hidden;max-width: 100%;}
+.f-icon[hidden_f='1']{
+	opacity: 0.6;
+}
+.f-icon .emblems{
+	height: 16px;
+	position: absolute;
+	right: 0px;
+	bottom: 0px;
+}
+.f-icon .emblems div{
+	width: 16px;
+	height: 16px;
+	background-repeat: no-repeat;
+	background-position: 100% 100%;
+}
+.tabcont{overflow: hidden;max-width: 100%;padding-bottom: 26px;}
 .tabcont[sel="0"]{display: none;}
 #files .tabcont .file-e .f-icon{
 	width: 18px;
@@ -301,6 +318,12 @@ body{
 	background-position: center;
 }
 /*Mosaic files style*/
+#files[view='mosaic'] > .tabcont{
+	padding-bottom: 26px;
+}
+#files[view='list'] > .tabcont .file-e{
+	cursor: pointer;
+}
 #files[view='mosaic'] > .tabcont .file-e{
 	margin: 5px;
 	width: 120px;
@@ -308,17 +331,20 @@ body{
 	float: left;
 	padding: 4px;
 	font-size: 18px;
+	position: relative;
 }
 #files[view='mosaic'] > .tabcont .file-e[sel="1"]{background-color: transparent;}
 #files[view='mosaic'] > .tabcont .file-e[sel="1"] .f-icon{-webkit-filter: hue-rotate(.9)}
 #files[view='mosaic'] > .tabcont .file-e[sel="1"] .f-name{background-color: #3D9BDA;border-radius: 3px;}
 #files[view='mosaic'] > .tabcont .file-e:hover{background-color: transparent;}
 #files[view='mosaic'] > .tabcont .file-e .f-icon{
-	width: 100%;
-	height: 80px;
+	width: 64px;
+	height: 64px;
 	text-align: center;
 	background-size: contain;
 	color: transparent;
+	float: none;
+	margin: auto;
 }
 #files[view='mosaic'] .tabcont .file-e .f-icon:hover{
 	-webkit-filter: brightness(108%);
@@ -333,7 +359,18 @@ body{
 	max-width: none;
 	width: 112px;
 	padding: 4px;
-	max-height: 49px;
+}
+#nbox{
+	position: fixed;
+	bottom: 4px;
+	background-color: rgba(0,0,0,0.8);
+	color: #FFF;
+	z-index: 100;
+	padding: 5px;
+	display: none;
+	max-width: calc(100% - 216px);
+	overflow: hidden;
+	font-size: 14px;
 }
 .view-btn{
 	padding-left: 6px;
