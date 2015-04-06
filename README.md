@@ -1,5 +1,7 @@
 #Nomowi Files
 ###Corriendo el codigo
+
+[![Join the chat at https://gitter.im/rurigk/nomowifiles](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/rurigk/nomowifiles?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 1. Descargar node-webkit
 [node-webkit](https://github.com/rogerwang/node-webkit "rogerwang / node-webkit")
 y descomprimir en un directorio
