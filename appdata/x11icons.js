@@ -1,12 +1,34 @@
+var net = require('net');
 var fs = require('fs');
 var exec = require('child_process').exec;
 var Ini = require('ini-parser');
 var themename="";
 var oldthemename="";
-updateThemeName();
+var daemonList=[];
+var client = net.connect({path: '/tmp/nomdbus'},function(){});
+var ida = 0;
+//updateThemeName();
+client.on('data', function(data) {
+	daemonList[0][1](data.toString());
+	daemonList.splice(0,1);
+	if(daemonList.length > 0){
+		client.write(daemonList[0][0]);
+	}
+});
+function daemonQuery(query,datacallback){
+	if(typeof query != 'string'){return false;}
+	if(typeof datacallback != 'function'){return false;}
+	daemonList.push([query,datacallback]);
+	if(daemonList.length == 1){
+		client.write(query);
+	}
+}
 module.exports = {
-	get:function(n,s,c,callback){
-		exec("gsettings get org.gnome.desktop.interface icon-theme",function(error, stdout, stderr){
+	get:function(n,s,callback){
+		daemonQuery('icon '+n+' '+s,function(icon){
+			callback(icon);
+		})
+		/*exec("gsettings get org.gnome.desktop.interface icon-theme",function(error, stdout, stderr){
 			if(stdout != ""){
 				theme_name=decodeURIComponent(stdout.replace(/["']/g, ""));
 				themename=theme_name;
@@ -20,15 +42,16 @@ module.exports = {
 					}
 				});
 			}
-		})
+		})*/
 	},
 	themechanged:function(){
-		if(themename != oldthemename){
+		/*if(themename != oldthemename){
 			oldthemename=themename;
 			return true;
 		}else{
 			return false;
-		}
+		}*/
+		return false;
 	}
 };
 
@@ -102,6 +125,7 @@ function _IconFinder(themename,n,s,c,callback){
 							scalablePref=scalables[i];
 							break;
 						}
+
 					}else{
 						if(s != size){
 							if(s > size-mediasize){

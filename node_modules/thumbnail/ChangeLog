@@ -1,0 +1,30 @@
+2014.09.05, Version 0.1.9
+
+* fix error message if gm is missing on OS X 10.9
+* only return on error after cb is called
+* add .gitignore
+
+
+2014.05.08, Version 0.1.8
+
+* added check to see if a thumbnail is still up to date (Sander Baas)
+
+
+2014.03.31, Version 0.1.7
+
+* make width and height parameters optional (Sander Baas)
+
+
+2014.01.23
+
+* tweak README markup
+
+
+2014.01.23, Version 0.1.6
+
+* search for supported extensions in a case insensitive way (Johannes Zellner)
+
+
+2013.04.06, Version 0.1.5
+
+* initial release
